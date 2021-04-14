@@ -27,53 +27,29 @@
                                 <div class="product-pic-zoom">
                                     <img class="product-big-img" :src="foto_default" alt="" />
                                 </div>
-                                <div class="product-thumbs">
+                                <div class="product-thumbs" v-if="productDetails.galleries.length > 0">
                                     <carousel class="product-thumbs-track ps-slider" :dots="false" :margin="10" :stagePadding="13" :autoplay="true" :nav="false">
-                                        <div class="pt" @click="changeFoto(thumbs[0])" :class="thumbs[0]==foto_default ? 'active' : '' ">
-                                            <img src="img/mickey1.jpg" alt="" />
+                                        
+                                        <div 
+                                            v-for="thumb in productDetails.galleries" :key="thumb.id"
+                                            class="pt" @click="changeFoto(thumb.photo)" 
+                                            :class="thumb.photo==foto_default ? 'active' : '' ">
+
+                                            <img :src="thumb.photo" alt="" />
                                         </div>
 
-                                        <div class="pt" @click="changeFoto(thumbs[1])" :class="thumbs[1]==foto_default ? 'active' : '' ">
-                                            <img src="img/mickey2.jpg" alt="" />
-                                        </div>
-
-                                        <div class="pt" @click="changeFoto(thumbs[2])" :class="thumbs[2]==foto_default ? 'active' : '' ">
-                                            <img src="img/mickey3.jpg" alt="" />
-                                        </div>
-
-                                        <div class="pt" @click="changeFoto(thumbs[3])" :class="thumbs[3]==foto_default ? 'active' : '' ">
-                                            <img src="img/mickey4.jpg" alt="" />
-                                        </div>
                                     </carousel>
                                 </div>
                             </div>
                             <div class="col-lg-6">
                                 <div class="product-details">
                                     <div class="pd-title text-left">
-                                        <span>Desain</span>
-                                        <h3>Packaging Makanan Ringan</h3>
+                                        <span>{{productDetails.type}}</span>
+                                        <h3>{{productDetails.name}}</h3>
                                     </div>
                                     <div class="pd-desc text-left">
-                                        <p>
-                                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis, error
-                                            officia. Rem aperiam laborum voluptatum vel, pariatur modi hic provident eum
-                                            iure natus quos non a sequi, id accusantium! Autem.
-                                        </p>
-                                        <p>
-                                            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Quam possimus quisquam
-                                            animi, commodi, nihil voluptate nostrum neque architecto illo officiis
-                                            doloremque et corrupti cupiditate voluptatibus error illum. Commodi expedita
-                                            animi nulla aspernatur.
-                                            Id asperiores blanditiis, omnis repudiandae iste inventore cum, quam sint
-                                            molestiae accusamus voluptates ex tempora illum sit perspiciatis. Nostrum dolor
-                                            tenetur amet, illo natus magni veniam quia sit nihil dolores.
-                                            Commodi ratione distinctio harum voluptatum velit facilis voluptas animi non
-                                            laudantium, id dolorem atque perferendis enim ducimus? A exercitationem
-                                            recusandae aliquam quod. Itaque inventore obcaecati, unde quam
-                                            impedit praesentium veritatis quis beatae ea atque perferendis voluptates velit
-                                            architecto?
-                                        </p>
-                                        <h4>Rp.15.000,-</h4>
+                                        <p>{{productDetails.description}}</p>
+                                        <h4>{{productDetails.price | currency}},00</h4>
                                     </div>
                                     <div class="quantity">
                                         <router-link to="/checkout" href="shopping-cart.html" class="primary-btn pd-cart">Masukkan Keranjang Belanja</router-link>
@@ -90,7 +66,7 @@
         <!-- separator start -->
         <div class="container">
           <div class="row">
-            <div class="col mt-5 mb-1">
+            <div class="col mt-3 mb-1">
               <h2 class="text-divider"><span>Produk Terkait</span></h2>
             </div>
           </div>
@@ -107,6 +83,7 @@
 
 // @ is an alias to /src
 import carousel from 'vue-owl-carousel'
+import axios from 'axios'
 
 import HeaderKesra from '@/components/HeaderKesra.vue'
 import FooterKesra from '@/components/FooterKesra.vue'
@@ -122,19 +99,38 @@ export default {
   },
   data(){
       return {
-          foto_default: "img/mickey1.jpg",
-          thumbs: [
-              "img/mickey1.jpg",
-              "img/mickey2.jpg",
-              "img/mickey3.jpg",
-              "img/mickey4.jpg"
-          ]
+          foto_default: "",
+          productDetails : []
+          
       }
   },
+
   methods : {
       changeFoto(url_image){
           this.foto_default = url_image;
+      },
+      setDataAndPicture(data){
+          //replace object productDetails with data from API
+          this.productDetails = data
+
+        //   cekDefault = data.galleries[0].is_default
+
+          //replace object foto_default with data from API (galleried)
+          this.foto_default = data.galleries[0].photo
       }
-  }
+  },
+
+  mounted(){
+    axios
+        //menentukan link api dengan get id tertentu 
+        .get("https://kreska-admin.ceketer.com/api/products", {
+            params : {
+                id : this.$route.params.id
+            }
+        })
+        .then(res => (this.setDataAndPicture(res.data.data)))
+        .catch(err => console.log(err));
+  },
+  
 }
 </script>
