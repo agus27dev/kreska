@@ -19,51 +19,53 @@
                   Keranjang Belanja &nbsp;
                   <a href="#">
                     <i class="icon_bag_alt"></i>
-                    <span>3</span>
+                    <span>{{userCart.length}}</span>
                   </a>
+
                   <div class="cart-hover">
-                    <div class="select-items">
+                    
+                    <div v-if="userCart.length>0" class="select-items">
                       <table>
+                        <!-- mengeluarkan data dari userCart yang telah terdeklarasi sebagai localstorage -->
                         <tbody>
-                          <tr>
+                          <tr v-for="item in userCart" :key="item.id">
                             <td class="si-pic">
-                              <img src="img/select-product-1.jpg" alt="" />
+                              <img :src="item.photo" alt="" class="img-cart" />
                             </td>
                             <td class="si-text">
                               <div class="product-selected">
-                                <p>Rp.15.000,- x 1</p>
-                                <h6>Packaging Makanan (1pcs)</h6>
+                                <p>{{item.price| currency}},00</p>
+                                <h6>{{item.name}}</h6>
                               </div>
                             </td>
-                            <td class="si-close">
-                              <i class="ti-close"></i>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td class="si-pic">
-                              <img src="img/select-product-2.jpg" alt="" />
-                            </td>
-                            <td class="si-text">
-                              <div class="product-selected">
-                                <p>Rp.60.000,- x 1</p>
-                                <h6>Desain Dashboard Admin Website (1 page)</h6>
-                              </div>
-                            </td>
-                            <td class="si-close">
+                            <td @click="removeItem(item.id)" class="si-close">
                               <i class="ti-close"></i>
                             </td>
                           </tr>
                         </tbody>
                       </table>
+
+                      <div class="select-total">
+                         <span><b>total:</b></span>
+                         <h5><b>{{priceTotal | currency}},00</b></h5>
+                       </div>
+
+                      <div class="select-button">
+                         <!-- <a href="#" class="primary-btn view-card">VIEW CARD</a> -->
+                         <router-link to="/checkout">
+                          <a href="#" class="primary-btn checkout-btn">CHECK OUT</a>
+                         </router-link>
+                      </div>
                     </div>
-                    <div class="select-total">
-                      <span>total:</span>
-                      <h5>Rp.75.000,-</h5>
+                  
+                    <div v-else class="select-items">
+                      <tbody>
+                        <tr>
+                          <td>Keranjang Kosong, Yuk Belanja</td>
+                        </tr>
+                      </tbody>
                     </div>
-                    <div class="select-button">
-                      <!-- <a href="#" class="primary-btn view-card">VIEW CARD</a> -->
-                      <a href="#" class="primary-btn checkout-btn">CHECK OUT</a>
-                    </div>
+
                   </div>
                 </li>
               </ul>
@@ -78,6 +80,67 @@
 
 <script>
 export default {
-    name: 'HeaderKesra'
+    
+    name: 'HeaderKesra',
+    
+    //mengambil data dari komponen produk
+    data(){
+      return {
+        userCart : []  
+      }
+    },
+    methods: {
+      removeItem(idx){
+      // cari tau id dari item yang akan dihapus
+        let userCartStore = JSON.parse(localStorage.getItem('userCart'))
+        let itemUserCart  = userCartStore.map(itemUserCart => itemUserCart.id)
+
+      // cocokan idx item dengan id yang ada di cart
+        let index = itemUserCart.findIndex(id => id == idx)
+        this.userCart.splice(index, 1)
+
+      // kirim kembali datanya
+        const parsed = JSON.stringify(this.userCart)
+        localStorage.setItem('userCart',parsed)
+        window.location.reload()
+      
+        
+        // this.userCart.splice(index, 1)
+        // const parsed = JSON.stringify(this.userCart)
+        // localStorage.setItem('userCart',parsed)
+        // window.location.reload()
+      }
+
+    },
+   
+
+    //mengambil data dari local storage
+    mounted(){
+
+      if (localStorage.getItem('userCart')) {
+        try {
+          this.userCart = JSON.parse(localStorage.getItem('userCart'));
+        } catch(e) {
+          localStorage.removeItem('userCart');
+        }
+      }
+    },
+
+    computed: {
+      priceTotal(){
+        return this.userCart.reduce(function(items, data){
+            return items + data.price
+        }, 0);
+      }
+    }
 }
 </script>
+<style scoped>
+.checkout-btn{
+  width: 290px;
+}
+.img-cart{
+  width: 100px;
+  height: 80px;
+}
+</style>

@@ -52,7 +52,15 @@
                                         <h4>{{productDetails.price | currency}},00</h4>
                                     </div>
                                     <div class="quantity">
-                                        <router-link to="/checkout" href="shopping-cart.html" class="primary-btn pd-cart">Masukkan Keranjang Belanja</router-link>
+                                        <router-link to="/checkout">
+                                            <!-- set data ke dalam parameter fungsi -->
+                                            <a @click="saveCart(
+                                                productDetails.id, 
+                                                productDetails.name, 
+                                                productDetails.price, 
+                                                productDetails.galleries[0].photo)" 
+                                            href="#" class="primary-btn pd-cart">Masukkan Keranjang Belanja</a>
+                                        </router-link>
                                     </div>
                                 </div>
                             </div>
@@ -99,9 +107,9 @@ export default {
   },
   data(){
       return {
-          foto_default: "",
-          productDetails : []
-          
+        foto_default: "",
+        productDetails : [],
+        userCart : []  
       }
   },
 
@@ -117,10 +125,39 @@ export default {
 
           //replace object foto_default with data from API (galleried)
           this.foto_default = data.galleries[0].photo
+      },
+      //fungsi mengubah objek ke data JSON dan menyimpannya ke data userCart
+      saveCart(idProduct, nameProduct, priceProduct, photoProduct){
+
+          //menyimpan parameter ke dalam variabel yang berisi objek
+          var productStored = {
+              "id" : idProduct,
+              "name" : nameProduct,
+              "price" : priceProduct,
+              "photo" : photoProduct
+          }
+          
+          //menyimpan variabel productStored ke dalam array userCart dalam bentuk JSON
+          this.userCart.push(productStored)
+          const parsed = JSON.stringify(this.userCart)
+
+          //set userCart dengan data sebagai local storage
+          localStorage.setItem('userCart',parsed)
+
       }
   },
 
   mounted(){
+
+    //get local storage setelah fungsi di eksekusi dan data ada
+    if (localStorage.getItem('userCart')) {
+      try {
+        this.userCart = JSON.parse(localStorage.getItem('userCart'));
+      } catch(e) {
+        localStorage.removeItem('userCart');
+      }
+    }
+
     axios
         //menentukan link api dengan get id tertentu 
         .get("https://kreska-admin.ceketer.com/api/products", {
